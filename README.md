@@ -1,4 +1,10 @@
-Linear regression fitting in x86 assembly, using nasm.
+Linear regression fitting in x86 assembly, using least squares, in x86 nasm.
+
+<h1> Model </h1>
+
+The model is a Simple Linear Regression:
+
+$ \^{Y} = b_0 + b_1 X $
 
 <h1> Building </h1>
 
