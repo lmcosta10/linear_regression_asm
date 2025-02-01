@@ -1,6 +1,9 @@
 section     .data
-    X       DB      1, 2, 6, 0x64           ; end of list currently equal to 0x64 = 100
-    Y       DB      2, 4, 12, 0x64          ; end of list currently equal to 0x64 = 100
+    X           DB      1, 2, 6, 0x64           ; end of list currently equal to 0x64 = 100
+    Y           DB      2, 4, 12, 0x64          ; end of list currently equal to 0x64 = 100
+    pathname    DB      "./result.txt"
+    p1          DD      "Y = "
+    p2          DD      "X + "
 
 section     .text
 global      _start
@@ -15,7 +18,9 @@ _start:
     CALL    get_mean
     PUSH    eax                     ; Y's mean
     CALL    get_b1
-    PUSH    eax                     ; b1
+    PUSH    eax                     ; b1 -- [ebp-20]
+    CALL    get_b0
+    PUSH    eax                     ; b0 -- [ebp-24]
     POP     ebp
     MOV     eax,    1
     MOV     ebx,    0
@@ -125,5 +130,56 @@ get_b1_loop_num:
 
     CMP     eax,    0x64            ; check if end of list
     JNE     get_b1_loop_num
+    MOV     eax,    [ebp-4]         ; store sum in eax
+    RET
+
+get_b0:
+    PUSH    ebp
+    MOV     ebp,    esp
+
+    MOV     eax,    0x0             ; sum will be stored in [ebp-4]
+    PUSH    eax
+
+    ; Get current X list's last 2 bytes (first number) and store in ebx
+    MOV     ecx,    0b11111111
+    MOV     ebx,    [ebp+24]
+    MOV     ebx,    [ebx]
+    AND     ebx,    ecx             ; current X number
+
+    MOV     edx,    0x0
+    PUSH    edx                     ; counter, times 8 (will be 8 greater than actual value in the end)
+
+    CALL    get_b0_loop_num         ; sum gets stored in eax
+
+    POP     edx
+    POP     eax
+    POP     ebp
+    RET
+
+get_b0_loop_num:
+    ; TODO - check negative numbers
+
+    MOV     eax,    [ebp+20]        ; X mean
+    SUB     eax,    ebx             ; first term - (X_mean - X)
+
+    MUL     eax
+
+    MOV     ebx,    [ebp-4]         ; get current sum
+    ADD     ebx,    eax             ; new sum
+    MOV     [ebp-4],ebx
+    
+    ; Get current X list's last 2 bytes (first number) and store in ebx
+    MOV     ebx,    [ebp+24]
+    MOV     ebx,    [ebx]
+    ; counter
+    MOV     ecx,    [ebp-8]
+    ADD     ecx,    0x8
+    MOV     [ebp-8],ecx             ; stored counter = counter + 8
+    SHR     ebx,    cl              ; only works with cl
+    MOV     ecx,    0b11111111
+    AND     ebx,    ecx             ; current X number
+
+    CMP     ebx,    0x64            ; check if end of list
+    JNE     get_b0_loop_num
     MOV     eax,    [ebp-4]         ; store sum in eax
     RET
