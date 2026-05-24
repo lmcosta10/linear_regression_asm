@@ -1,0 +1,4 @@
+*.o
+/out/*
+linear_regression
+result.txt

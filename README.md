@@ -1,13 +1,26 @@
 Linear regression fitting in x86 assembly, using least squares, in x86 nasm.
 
-<h1> Model </h1>
+# Model
 
 The model is a Simple Linear Regression:
 
-$ \^{Y} = b_0 + b_1 X $
+$ \hat{Y} = b_1 X $
 
-<h1> Building </h1>
+# Building and Running (Linux)
 
-1) nasm -f elf -o linear_regression.o linear_regression.s
+You can just run `./run.sh` (after making it executable with `chmod +x ./run.sh`) or follow the steps below.
 
-2) ld -m elf_i386 -o linear_regression linear_regression.o
+## Building
+
+Make sure to have nasm installed.
+
+```
+nasm -f elf -o linear_regression.o linear_regression.asm
+ld -m elf_i386 -o ./linear_regression linear_regression.o
+```
+
+## Running
+
+```
+./linear_regression 
+```
