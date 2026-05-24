@@ -1,9 +1,11 @@
 section     .data
     ; X and Y: model's X and Y.
     ; they end in 0x64 = 100 because it's what the code
-    ; (currently) looks for when checking the end of the array
-    X           DB      1, 2, 6, 0x64           
-    Y           DB      2, 4, 12, 0x64
+    ; (currently) looks for when checking the end of the array.
+    ; **Current limitation**: X mean and other intermediary results
+    ; must be integers.
+    X           DB      2, 5, 8, 0x64           
+    Y           DB      12, 30, 48, 0x64
 
     ; pathname: file in which the results will get printed
     pathname    DB      "./result.txt", 0       ; linux paths must end with a null byte (0)
@@ -56,6 +58,7 @@ _start:
     ; write results
     ; create/open result.txt
     MOV     eax, 5                  ; sys_open
+    ; obs.: for executing a sys call, eax must contain the sys call number before the INT 80h
     MOV     ebx, pathname
     MOV     ecx, 0101o              ; O_WRONLY | O_CREAT flags (octal)
     MOV     edx, 0666o              ; rw-rw-rw-
@@ -171,16 +174,14 @@ get_b1_num:
     MOV     edx,    0x0
     PUSH    edx                     ; counter, times 8 (will be 8 greater than actual value in the end)
 
-    CALL    get_b1_num_loop_num         ; sum gets stored in eax
+    CALL    get_b1_num_loop         ; sum gets stored in eax
 
     POP     edx
     POP     eax
     POP     ebp
     RET
 
-get_b1_num_loop_num:
-    ; TODO - check negative numbers
-
+get_b1_num_loop:
     MOV     ebx,    [ebp+16]        ; X mean
     SUB     ebx,    eax             ; first term - (X_mean - X)
     PUSH    ebx                     ; [ebp-12]
@@ -219,7 +220,7 @@ get_b1_num_loop_num:
     AND     ecx,    edx             ; current Y number
 
     CMP     eax,    0x64            ; check if end of list
-    JNE     get_b1_num_loop_num
+    JNE     get_b1_num_loop
     MOV     eax,    [ebp-4]         ; store sum in eax
     RET
 
@@ -239,16 +240,14 @@ get_b1_den:
     MOV     edx,    0x0
     PUSH    edx                     ; counter, times 8 (will be 8 greater than actual value in the end)
 
-    CALL    get_b1_den_loop_num         ; sum gets stored in eax
+    CALL    get_b1_den_loop         ; sum gets stored in eax
 
     POP     edx
     POP     eax
     POP     ebp
     RET
 
-get_b1_den_loop_num:
-    ; TODO - check negative numbers
-
+get_b1_den_loop:
     MOV     eax,    [ebp+20]        ; X mean
     SUB     eax,    ebx             ; first term - (X_mean - X)
 
@@ -270,6 +269,6 @@ get_b1_den_loop_num:
     AND     ebx,    ecx             ; current X number
 
     CMP     ebx,    0x64            ; check if end of list
-    JNE     get_b1_den_loop_num
+    JNE     get_b1_den_loop
     MOV     eax,    [ebp-4]         ; store sum in eax
     RET
